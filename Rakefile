@@ -15,14 +15,22 @@ Jeweler::Tasks.new do |gem|
   gem.name = "ios-box"
   gem.homepage = "http://github.com/mikian/ios-box"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Automates some common tasks in iOS development}
+  gem.description = %Q{ios-box offers automation and easy tasks for some most common tasks in iOS development.}
   gem.email = "mikko.kokkonen@me.com"
   gem.authors = ["Mikko Kokkonen"]
+  
+  gem.files.include %w(lib/**/*.rb)
   # Include your dependencies below. Runtime dependencies are required when using your gem,
   # and development dependencies are only needed for development (ie running rake tasks, tests, etc)
-  #  gem.add_runtime_dependency 'jabber4r', '> 0.1'
-  #  gem.add_development_dependency 'rspec', '> 1.2.3'
+  gem.add_runtime_dependency 'pbxproject'
+  gem.add_runtime_dependency 'plist'
+  gem.add_runtime_dependency 'yaml'
+  gem.add_runtime_dependency 'ostruct'
+  gem.add_runtime_dependency 'grit'
+  
+  gem.add_development_dependency 'rspec', '> 1.2.3'
+  gem.add_development_dependency 'plist'
 end
 Jeweler::RubygemsDotOrgTasks.new
 
