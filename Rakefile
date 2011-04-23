@@ -25,12 +25,9 @@ Jeweler::Tasks.new do |gem|
   # and development dependencies are only needed for development (ie running rake tasks, tests, etc)
   gem.add_runtime_dependency 'pbxproject'
   gem.add_runtime_dependency 'plist'
-  gem.add_runtime_dependency 'yaml'
-  gem.add_runtime_dependency 'ostruct'
   gem.add_runtime_dependency 'grit'
   
   gem.add_development_dependency 'rspec', '> 1.2.3'
-  gem.add_development_dependency 'plist'
 end
 Jeweler::RubygemsDotOrgTasks.new
 
