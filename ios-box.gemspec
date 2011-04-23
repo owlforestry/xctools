@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ios-box}
-  s.version = "0.1.0"
+  s.version = "0.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mikko Kokkonen"]
@@ -14,17 +14,20 @@ Gem::Specification.new do |s|
   s.email = %q{mikko.kokkonen@me.com}
   s.extra_rdoc_files = [
     "LICENSE.txt",
-    "README.rdoc"
+    "README.md"
   ]
   s.files = [
     ".document",
     ".rspec",
     "Gemfile",
+    "Gemfile.lock",
     "LICENSE.txt",
-    "README.rdoc",
+    "README.md",
     "Rakefile",
     "VERSION",
+    "ios-box.gemspec",
     "lib/ios-box.rb",
+    "lib/ios_box.rb",
     "spec/ios-box_spec.rb",
     "spec/spec_helper.rb"
   ]
@@ -32,7 +35,7 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.6.2}
-  s.summary = %q{Auotmates some common tasks in iOS development}
+  s.summary = %q{Automates some common tasks in iOS development}
   s.test_files = [
     "spec/ios-box_spec.rb",
     "spec/spec_helper.rb"
@@ -50,8 +53,8 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<rcov>, [">= 0"])
       s.add_runtime_dependency(%q<pbxproject>, [">= 0"])
       s.add_runtime_dependency(%q<plist>, [">= 0"])
+      s.add_runtime_dependency(%q<grit>, [">= 0"])
       s.add_development_dependency(%q<rspec>, ["> 1.2.3"])
-      s.add_development_dependency(%q<plist>, [">= 0"])
     else
       s.add_dependency(%q<plist>, [">= 0"])
       s.add_dependency(%q<pbxproject>, [">= 0"])
@@ -61,8 +64,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<rcov>, [">= 0"])
       s.add_dependency(%q<pbxproject>, [">= 0"])
       s.add_dependency(%q<plist>, [">= 0"])
+      s.add_dependency(%q<grit>, [">= 0"])
       s.add_dependency(%q<rspec>, ["> 1.2.3"])
-      s.add_dependency(%q<plist>, [">= 0"])
     end
   else
     s.add_dependency(%q<plist>, [">= 0"])
@@ -73,8 +76,8 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<rcov>, [">= 0"])
     s.add_dependency(%q<pbxproject>, [">= 0"])
     s.add_dependency(%q<plist>, [">= 0"])
+    s.add_dependency(%q<grit>, [">= 0"])
     s.add_dependency(%q<rspec>, ["> 1.2.3"])
-    s.add_dependency(%q<plist>, [">= 0"])
   end
 end
 
