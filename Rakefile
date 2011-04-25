@@ -23,7 +23,7 @@ Jeweler::Tasks.new do |gem|
   gem.files.include %w(lib/**/*.rb)
   # Include your dependencies below. Runtime dependencies are required when using your gem,
   # and development dependencies are only needed for development (ie running rake tasks, tests, etc)
-  gem.add_runtime_dependency 'pbxproject'
+  gem.add_runtime_dependency 'pbxproject', '>=0.1.4'
   gem.add_runtime_dependency 'plist'
   gem.add_runtime_dependency 'grit'
   

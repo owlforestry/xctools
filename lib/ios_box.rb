@@ -18,11 +18,23 @@ module IosBox
       
       # Load build cache
       @buildCache = BuildCache.load(@config.buildCache) || BuildCache.new
+      @buildCache.init(@config)
+      
       @namespace = namespace
       define
     end
 
     class BuildCache
+      def init config
+        # Fill our config object
+        # But only if it hasn't been initialized yet and not in XCode env
+        if (config.project_dir.nil? && ENV['XCODE_VERSION_ACTUAL'].nil?)
+          config.project_dir = @project_dir
+          config.infoplist_file= @infoplist_file
+          config.plist = File.join(@project_dir, @infoplist_file)
+        end
+      end
+      
       def self.load file = ".buildCache"
         return unless File.file?(file)
         YAML.load_file(file)
@@ -36,7 +48,13 @@ module IosBox
     class Config < OpenStruct
       def initialize args
         super
-        self.plist = File.join(ENV['PROJECT_DIR'] || '', ENV['INFOPLIST_FILE'] || '')
+        # Do we have XCode environment?
+        if (ENV['XCODE_VERSION_ACTUAL'])
+          self.project_dir = ENV['PROJECT_DIR']
+          self.infoplist_file = ENV['INFOPLIST_FILE']
+          self.plist = File.join(self.project_dir, self.infoplist_file)
+          # Else delay variable initialization until we have build cache
+        end
       end
     end
     
@@ -71,13 +89,31 @@ module IosBox
         task :version do
           @plist = Plist::parse_xml(@config.plist)
           @config._short_version = @plist["CFBundleShortVersionString"]
+          @config._bundle_version = @plist["CFBundleVersion"]
+          
+          # Check if we have defined new version number in XCode
+          if (@plist["CFBundleShortVersionString"] != @plist["CFBundleVersion"])
+            # Do we have human version number?
+            if (m = @plist["CFBundleVersion"].match(/(\d+)\.(\d{1,2})(\.(\d+))?$/))
+              ver_str = "%d.%d%s" % [ m[1], m[2], m[4] ? ".#{m[4]}" : "" ]
+              @plist['CFBundleShortVersionString'] = ver_str
+              @plist.save_plist(@config.plist)
+              puts "Version string updated."
+              @config._short_version = @config._bundle_version
+            end
+          end
+          
           puts " Short Version: #{@config._short_version}"
         end
         
         namespace :version do
           @ver = {:major => nil, :minor => nil, :patch => nil}
           def _prepare
-            @git = Grit::Repo.new("#{ENV['PROJECT_DIR']}")
+            if (@config.project_dir.nil? || @config.plist.nil?)
+              raise "Cannot find project dir and/or Info.plist. Aither not running from XCode or missing buildCache."
+            end
+            
+            @git = Grit::Repo.new("#{@config.project_dir}")
             @config._commit = @git.commit("HEAD").id_abbrev
             
             @plist = Plist::parse_xml(@config.plist)
@@ -91,7 +127,8 @@ module IosBox
           def _write_back
             @plist = Plist::parse_xml(@config.plist) unless @plist
             ver_str = "%d.%d%s" % [ @ver[:major], @ver[:minor], @ver[:patch] ? ".#{@ver[:patch]}" : "" ]
-            @plist["CFBundleShortVersionString"] = ver_str
+            @plist["CFBundleShortVersionString"] = ver_str # Human redable version string
+            @plist["CFBundleVersion"] = ver_str # XCode uses this version, we override this in prebuild
             @plist.save_plist(@config.plist)
           end
   
@@ -211,10 +248,12 @@ module IosBox
           
           desc "Prepares build environment"
           task :prepare => ["version:bundlever"] do
+            raise "This task must be run in XCode Environment" unless ENV['XCODE_VERSION_ACTUAL']
+            
             # Save our environment variables
             ["BUILT_PRODUCTS_DIR", "BUILD_DIR", "CONFIGURATION", "CONFIGURATION_BUILD_DIR",
               "PROJECT_DIR", "INFOPLIST_FILE", "TARGET_NAME"].each { |v|
-              @buildCache.instance_variable_set("@#{v.downcase}", ENV[v])
+              @buildCache.instance_variable_set("@#{v.downcase}", ENV[v]) unless ENV[v].nil?
             }
             @buildCache.save
             
