@@ -63,6 +63,6 @@ Run `rake -T` in project folder to see available commands.
 Copyright
 ---------
 
-Copyright (c) 2011 Mikko Kokkonen. See LICENSE.txt for
+Copyright &copy; 2011 Mikko Kokkonen. See LICENSE.txt for
 further details.
 
