@@ -5,6 +5,8 @@ require 'ostruct'
 require 'grit'
 require 'plist'
 
+require 'build_cache'
+
 module IosBox
   class Tasks < ::Rake::TaskLib
     def initialize(namespace = :iosbox, &block)
@@ -22,27 +24,6 @@ module IosBox
       
       @namespace = namespace
       define
-    end
-
-    class BuildCache
-      def init config
-        # Fill our config object
-        # But only if it hasn't been initialized yet and not in XCode env
-        if (config.project_dir.nil? && ENV['XCODE_VERSION_ACTUAL'].nil?)
-          config.project_dir = @project_dir
-          config.infoplist_file= @infoplist_file
-          config.plist = File.join(@project_dir, @infoplist_file)
-        end
-      end
-      
-      def self.load file = ".buildCache"
-        return unless File.file?(file)
-        YAML.load_file(file)
-      end
-      
-      def save file = ".buildCache"
-        File.open(file, 'w') { |io| YAML.dump(self, io) }
-      end
     end
     
     class Config < OpenStruct
@@ -253,8 +234,16 @@ module IosBox
             # Save our environment variables
             ["BUILT_PRODUCTS_DIR", "BUILD_DIR", "CONFIGURATION", "CONFIGURATION_BUILD_DIR",
               "PROJECT_DIR", "INFOPLIST_FILE", "TARGET_NAME"].each { |v|
-              @buildCache.instance_variable_set("@#{v.downcase}", ENV[v]) unless ENV[v].nil?
+              # @buildCache.set v.downcase, ENV[v] unless ENV[v].nil?
+              @buildCache.send("#{v.downcase}=", ENV[v]) unless ENV[v].nil?
             }
+            
+            # Increase buildcounter
+            if (@buildCache.build_counter.nil?)
+              @buildCache.build_counter = 0
+            end
+            
+            @buildCache.build_counter += 1
             @buildCache.save
             
             # Save version info

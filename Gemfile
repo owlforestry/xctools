@@ -5,6 +5,8 @@ source "http://rubygems.org"
 
 gem "plist"
 gem "pbxproject"
+gem "plist"
+gem "grit"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.

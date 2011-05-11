@@ -28,6 +28,9 @@ Jeweler::Tasks.new do |gem|
   gem.add_runtime_dependency 'grit'
   
   gem.add_development_dependency 'rspec', '> 1.2.3'
+  gem.add_development_dependency 'pbxproject', '>=0.1.4'
+  gem.add_development_dependency 'grit'
+  gem.add_development_dependency 'plist'
 end
 Jeweler::RubygemsDotOrgTasks.new
 
