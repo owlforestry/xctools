@@ -25,10 +25,13 @@ Gem::Specification.new do |s|
     "README.md",
     "Rakefile",
     "VERSION",
+    "dump",
     "ios-box.gemspec",
     "lib/build_cache.rb",
     "lib/ios-box.rb",
     "lib/ios_box.rb",
+    "patch",
+    "spec/build_cache_spec.rb",
     "spec/ios-box_spec.rb",
     "spec/spec_helper.rb"
   ]
@@ -49,6 +52,8 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<plist>, [">= 0"])
       s.add_runtime_dependency(%q<pbxproject>, [">= 0"])
+      s.add_runtime_dependency(%q<plist>, [">= 0"])
+      s.add_runtime_dependency(%q<grit>, [">= 0"])
       s.add_development_dependency(%q<rspec>, ["~> 2.3.0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
@@ -63,6 +68,8 @@ Gem::Specification.new do |s|
     else
       s.add_dependency(%q<plist>, [">= 0"])
       s.add_dependency(%q<pbxproject>, [">= 0"])
+      s.add_dependency(%q<plist>, [">= 0"])
+      s.add_dependency(%q<grit>, [">= 0"])
       s.add_dependency(%q<rspec>, ["~> 2.3.0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
@@ -78,6 +85,8 @@ Gem::Specification.new do |s|
   else
     s.add_dependency(%q<plist>, [">= 0"])
     s.add_dependency(%q<pbxproject>, [">= 0"])
+    s.add_dependency(%q<plist>, [">= 0"])
+    s.add_dependency(%q<grit>, [">= 0"])
     s.add_dependency(%q<rspec>, ["~> 2.3.0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
