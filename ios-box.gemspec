@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ios-box}
-  s.version = "0.0.3"
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mikko Kokkonen"]
-  s.date = %q{2011-05-12}
+  s.date = %q{2011-05-14}
   s.description = %q{ios-box offers automation and easy tasks for some most common tasks in iOS development.}
   s.email = %q{mikko.kokkonen@me.com}
   s.extra_rdoc_files = [
@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
     "spec/ios-box_spec.rb",
     "spec/spec_helper.rb"
   ]
-  s.homepage = %q{http://github.com/mikian/ios-box}
+  s.homepage = %q{http://github.com/owl-foresty/ios-box}
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.6.2}
