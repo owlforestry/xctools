@@ -61,6 +61,10 @@ module IosBox
           target = pbx.find_item :name => @config.target, :type => PBXProject::PBXTypes::PBXNativeTarget
           target.add_build_phase initPhase, 0
           
+          # Fix DevelopmentRegion
+          project = pbx.find_item :type => PBXProject::PBXTypes::PBXProject
+          project[0].developmentRegion = "en"
+          
           # Save our project file
           pbx.write_to :file => "#{xcode}/project.pbxproj"
         end

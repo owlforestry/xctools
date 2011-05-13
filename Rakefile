@@ -13,7 +13,7 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "ios-box"
-  gem.homepage = "http://github.com/mikian/ios-box"
+  gem.homepage = "http://github.com/owl-foresty/ios-box"
   gem.license = "MIT"
   gem.summary = %Q{Automates some common tasks in iOS development}
   gem.description = %Q{ios-box offers automation and easy tasks for some most common tasks in iOS development.}

@@ -6,7 +6,7 @@ module IosBox
       if (config.project_dir.nil? && ENV['XCODE_VERSION_ACTUAL'].nil?)
         config.project_dir = @project_dir
         config.infoplist_file = @infoplist_file
-        config.plist = File.join(@project_dir, @infoplist_file)
+        config.plist = File.join(@project_dir, @infoplist_file) unless @project_dir.nil?
       end
     end
   
