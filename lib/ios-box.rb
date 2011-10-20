@@ -1,1 +1,7 @@
-require 'ios_box'
+require "ios-box/version"
+
+module Ios
+  module Box
+    # Your code goes here...
+  end
+end
