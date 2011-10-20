@@ -24,10 +24,10 @@ module Ios
           pl = Plist::parse_xml(product_plist)
           if (pl)
             # pl["CFBundleVersion"] = @config._bundle_version
-            pl["IBBuildNum"] = version[:build_number]
+            pl["IBBuildNum"] = version[:build]
             pl["IBBuildDate"] = Time.new.strftime("%a %e %b %Y %H:%M:%S %Z %z")
             pl["IBBuildType"] = ENV['CONFIGURATION']
-            pl["GCGitCommitHash"] = version[:commit] # for hoptoadapp
+            pl["GCGitCommitHash"] = version[:commit] # for airbrake
             pl.save_plist(product_plist)
           end
           # Convert PList back to binary

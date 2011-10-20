@@ -1,3 +1,4 @@
+require 'ios-box/config'
 require 'ios-box/tools'
 require 'ios-box/iosbox'
 require 'thor'
@@ -13,6 +14,9 @@ module Ios
       
       desc "build COMMAND", "Build related subcommands"
       subcommand "build", Tools::Build
+      
+      desc "config COMMAND", "Configuration related subcommands"
+      subcommand "config", Tools::Config
       
       desc "integrate [PROJECT]", "Integrates ios-box with project, by default first founded"
       def integrate(project = nil)
@@ -56,7 +60,7 @@ module Ios
         if prebuilds.empty?        
           initPhase = PBXProject::PBXTypes::PBXShellScriptBuildPhase.new(
             :shellPath => '/bin/sh',
-            :shellScript => "\"(cd $PROJECT_DIR; ruby ~/Code/ios-box/bin/ios-box build prepare)\"",
+            :shellScript => "\"(cd $PROJECT_DIR; #{%x{which ios-box}.strip} build prepare)\"",
             :showEnvVarsInLog => 0,
             :name => '"ios-box prepare"'
             )
@@ -67,24 +71,20 @@ module Ios
           initPhase = prebuilds.first
         end
         
-        _targets = ""
         targets.each do |target|
           if shell.yes?("Integrate with target #{target.name.value}? [yn]")
             # Inject buildphase to target
             # Add to target
             target.add_build_phase initPhase, 0
-            _targets << "config.targets << \"#{target.name.value}\""
           end
         end
         
         # Create iosbox configuration file
-        create_file ".iosbox" do
-          "# ios-box configuration file\n" +
-          "# https://github.com/owl-forestry/ios-box\n" +
-          "#\n" +
-          "config.project = \"#{project}\"\n" +
-          "#{_targets}\n"
-        end
+        config = Config.new
+        config.project = project
+        config.targets = targets.collect{|c| c.name.value}
+        config.save(".iosbox")
+
         # Append buildcache to gitignore
         send((File.exists?(".gitignore") ? :append_to_file : :create_file), ".gitignore", ".buildcache\n")
         

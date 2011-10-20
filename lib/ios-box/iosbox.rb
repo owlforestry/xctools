@@ -9,11 +9,50 @@ module Ios::Box
     attr_reader :config, :cache, :version
 
     def initialize
-      @config = Config.load
+      # @config = Config.load
+      @config = Config.new ".iosbox"
+      
       @cache = Cache.load
       @version = Version.new(self)
     end
+    
+    def project_dir
+      if ENV['XCODE_VERSION_ACTUAL']
+        pdir = ENV['PROJECT_DIR']
+      else
+        # Do we have buildcache?
+        if cache[:latest]
+          configuration = cache[:latest]
+          pdir = cache[configuration][:project_dir]
+        else
+          raise "Build cache has not been filled, please build project."
+        end
+      end
 
+      pdir
+    end
+    
+    def plist
+      if ENV['XCODE_VERSION_ACTUAL']
+        file = File.join(ENV['PROJECT_DIR'], ENV['INFOPLIST_FILE'])
+      else
+        # Do we have buildcache?
+        if cache[:latest]
+          configuration = cache[:latest]
+          file = File.join(cache[configuration][:project_dir], cache[configuration][:infoplist_file])
+        else
+          raise "Build cache has not been filled, please build project."
+        end
+      end
+      
+      file
+    end
+    
+    def git
+      @git ||= Grit::Repo.new(project_dir)
+    end
+    
+    
     class Version
       attr_reader :iosbox
 
@@ -25,50 +64,25 @@ module Ios::Box
         # Return cached version
         return @version if @version
         
-        # iOS code
-        # XCode environment?
-        # Load buildcache if exists
-        if ENV['XCODE_VERSION_ACTUAL']
-          plist_file = File.join(ENV['PROJECT_DIR'], ENV['INFOPLIST_FILE'])
-          project_dir = ENV['PROJECT_DIR']
-        else
-          # Do we have buildcache?
-          if iosbox.cache[:latest]
-            configuration = iosbox.cache[:latest]
-            plist_file = File.join(iosbox.cache[configuration][:project_dir], iosbox.cache[configuration][:infoplist_file])
-            project_dir = iosbox.cache[configuration][:project_dir]
-          else
-            raise "Build cache has not been filled, please build project."
-          end
-        end
-
         # Detect our commit hash
-        git = Grit::Repo.new("#{project_dir}")
-
-        plist = Plist::parse_xml(plist_file)
+        # git = Grit::Repo.new(iosbox.project_dir)
+        pl = Plist::parse_xml(iosbox.plist)
 
         # Build normal version hash
-        @version = {
-          :short  => plist["CFBundleShortVersionString"],
-          :bundle => plist["CFBundleVersion"],
-          :commit => git.commit("HEAD").id_abbrev,
+        @version  = {
+          :short  => pl["CFBundleShortVersionString"],
+          :bundle => pl["CFBundleVersion"],
+          :commit => iosbox.git.commit("HEAD").id_abbrev,
+          :build  => pl["IBBuildNumber"],
         }
 
         # Build technical version number
-        if (m = plist["CFBundleShortVersionString"].match(/(\d+)\.(\d+)(\.(\d+))?/))
+        if (m = pl["CFBundleShortVersionString"].match(/(\d+)\.(\d+)(\.(\d+))?/))
           @version[:major] = Integer(m[1]) if m[1]
           @version[:minor] = Integer(m[2]) if m[2]
           @version[:patch] = Integer(m[4]) if m[4]
-          @version[:technical] = @version[:major] + ((@version[:minor] * 100) / 1000.0)
-          if @version[:patch]
-            @version[:technical] += ((@version[:patch] > 10) ? @version[:patch] : @version[:patch] * 10) / 1000.0
-          end
+          @version[:technical] = @version[:major] + @version[:minor] / 100.0 + @version[:patch] / 10000.0
         end
-
-        # Fetch current build number (project version)
-        # Check if we have build number in cache
-
-        @version[:build_number] = fetch_build_number
 
         @version
       end
@@ -83,28 +97,81 @@ module Ios::Box
         @version[v] = s
       end
       
+      def to_a
+        (@version ||= load).to_a
+      end
+      
       def marketing_version
+        load unless @version
         "%d.%d%s" % [ @version[:major], @version[:minor], @version[:patch] ? ".#{@version[:patch]}" : "" ]
+      end
+      
+      def bundle_version
+        load unless @version
+        
+        # Build our components
+        comp = {
+          "M" => @version[:major],
+          "m" => @version[:minor],
+          "p" => @version[:patch],
+          "P" => @version[:patch] ? ".#{@version[:patch]}" : "",
+          "b" => @version[:build],
+          "S" => marketing_version,
+          "V" => @version[:major] * 10 + @version[:minor],
+          "v" => @version[:major] * 100 + @version[:minor] * 10 + (@version[:patch] ? @version[:patch] : 0),
+          "x" => begin
+            prj_begin = Time.now
+            if (iosbox.config.first_revision)
+              prj_begin = iosbox.git.commit(iosbox.config.first_revision).authored_date
+            elsif (iosbox.config.first_date)
+              prj_begin = iosbox.config.first_date
+            else
+              prj_begin = iosbox.git.log.last.authored_date
+            end
+            
+            months = ((Time.now.month + 12 * Time.now.year) - (prj_begin.month + 12 * prj_begin.year))
+            "%d%02d" % [months, Time.now.day]
+          end,
+        }
+        compre = Regexp.new("[" + comp.keys.join("") + "]")
+        
+        @version[:bundle] = (iosbox.config.bundle_version_style || "x").gsub(compre) do |s|
+          comp[s]
+        end
       end
       
       def bump_build(buildnum = nil)
         # Fetch current build number (project version)
-        # Check if we have build number in cache
+        pl = Plist::parse_xml(iosbox.plist)
+        # pl["CFBundleShortVersionString"] = verstr
+        # pl.save_plist(plist)
+
         if buildnum.nil?
-          build = (fetch_build_number || 0) + 1
+          build = (pl["IBBuildNumber"] || 0) + 1
         else
           build = buildnum
         end
 
-        store_build_number(build)
+        pl["IBBuildNumber"] = build
+        pl["CFBundleVersion"] = bundle_version
+        pl.save_plist(iosbox.plist)
         
-        puts "Build number increased to #{iosbox.cache[:build_number]}"
+        # Commit plist
+        if iosbox.config['autocommit']
+          iosbox.git.add iosbox.plist
+          iosbox.git.commit "Bumped build number"
+        end
+        
+        
+        puts "Build number increased to #{build}"
       end
 
       def set_marketing(verstr)
-        pl = Plist::parse_xml(plist)
+        pl = Plist::parse_xml(iosbox.plist)
         pl["CFBundleShortVersionString"] = verstr
-        pl.save_plist(plist)
+        pl.save_plist(iosbox.plist)
+        
+        puts "New marketing version #{marketing_version}"
       end
       
       def bump_marketing(type = :patch)
@@ -121,83 +188,12 @@ module Ios::Box
           @version[:patch] = (@version[:patch] || 0) + 1
         end
         
-        pl = Plist::parse_xml(plist)
+        pl = Plist::parse_xml(iosbox.plist)
         pl["CFBundleShortVersionString"] = marketing_version
-        pl.save_plist(plist)
+        pl.save_plist(iosbox.plist)
         
         puts "New marketing version #{marketing_version}"
       end
-
-      private
-        def fetch_build_number
-          unless iosbox.cache[:build_number]
-            puts "Project: #{iosbox.config.project}"
-            pbx = PBXProject::PBXProject.new :file => File.join(iosbox.config.project, "project.pbxproj")
-            pbx.parse
-            
-            iosbox.config.targets.each do |target|
-              target = pbx.find_item :name => target, :type => PBXProject::PBXTypes::PBXNativeTarget
-              cl = pbx.find_item :guid => target.buildConfigurationList.value, :type => PBXProject::PBXTypes::XCConfigurationList
-              cl.buildConfigurations.each do |bc|
-                bc = pbx.find_item :guid => bc.value, :type => PBXProject::PBXTypes::XCBuildConfiguration
-
-                if bc.buildSettings["CURRENT_PROJECT_VERSION"]
-                  iosbox.cache[:build_number] = bc.buildSettings["CURRENT_PROJECT_VERSION"].value
-                  break
-                end
-              end
-
-              break if iosbox.cache[:build_number]
-            end
-
-            # Save build number to cache
-            iosbox.cache.save
-          end
-
-          Integer(iosbox.cache[:build_number] || 0)
-        end
-
-        def store_build_number(build)
-          puts "Project: #{iosbox.config.project}"
-          pbx = PBXProject::PBXProject.new :file => File.join(iosbox.config.project, "project.pbxproj")
-          pbx.parse
-
-          iosbox.config.targets.each do |target|
-            target = pbx.find_item :name => target, :type => PBXProject::PBXTypes::PBXNativeTarget
-            cl = pbx.find_item :guid => target.buildConfigurationList.value, :type => PBXProject::PBXTypes::XCConfigurationList
-            cl.buildConfigurations.each do |bc|
-              bc = pbx.find_item :guid => bc.value, :type => PBXProject::PBXTypes::XCBuildConfiguration
-
-              if bc.buildSettings["CURRENT_PROJECT_VERSION"]
-                bc.buildSettings["CURRENT_PROJECT_VERSION"].value = "\"#{build}\""
-              else
-                bc.buildSettings["CURRENT_PROJECT_VERSION"] = PBXProject::PBXTypes::BasicValue.new :value => "\"#{build}\""
-              end
-            end
-          end
-          
-          # Save build number to pbxproject and to cache
-          pbx.write_to :file => File.join(iosbox.config.project, "project.pbxproj")
-          iosbox.cache[:build_number] = build
-          iosbox.cache.save
-        end
-        
-        # Return plist file name
-        def plist
-          if ENV['XCODE_VERSION_ACTUAL']
-            file = File.join(ENV['PROJECT_DIR'], ENV['INFOPLIST_FILE'])
-          else
-            # Do we have buildcache?
-            if iosbox.cache[:latest]
-              configuration = iosbox.cache[:latest]
-              file = File.join(iosbox.cache[configuration][:project_dir], iosbox.cache[configuration][:infoplist_file])
-            else
-              raise "Build cache has not been filled, please build project."
-            end
-          end
-          
-          file
-        end
     end
   end
 

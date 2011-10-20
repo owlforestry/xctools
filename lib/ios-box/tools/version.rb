@@ -6,10 +6,13 @@ module Ios
         def show
           version = IOSBox.new.version
           
+          
+          shell.print_table version.to_a
+          
           puts "  Short Version: #{version[:short]}"
           puts " Bundle Version: #{version[:bundle]}"
-          puts "      Technical: %1.3f" % version[:technical]
-          puts "   Build Number: #{version[:build_number]}"
+          puts "      Technical: %1.4f" % version[:technical]
+          puts "   Build Number: #{version[:build]}"
           puts "         Commit: #{version[:commit]}"
         end
         

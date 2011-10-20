@@ -1,23 +1,20 @@
 IosBox
 ======
 
-IosBox is collection of Rake Tasks that makes developing iOS apps more easy.
-It includes rake tasks that take care of updating app Info.plist with proper
-version information (e.g. build date, GIT hash, etc).
-Further version will integrate deployment options, such as deploy beta versions
-to TestFlight.
+IosBox is tool that integrates with XCode to automate some of the tasks.
 
 Current Features
 ----------------
 
 Currently IosBox supports following features:
 
-* <b>Build Prepare</b> (`iosbox:build:prepare`)
-  Build prepare task generates new build number and bundle version and stores
+* <b>Build Prepare</b> (`build prepare`)
+  Build prepare task generates new build and bundle version  and stores
   it to application Info.plist.
-  It also saves some needed path information to .buildCache for other tasks
+  It also prepares buildcache for further tasks.
 
-* <b>Version Mungle</b> (`iosbox:version:*`)
+* <b>Version Management</b> (`version`)
+  IosBox offers simple 
   IosBox offers simple tasks to bump version numbers. Either it is patch, minor or
   major version bump, IosBox automatically handles increasing current version number.
 
@@ -29,39 +26,48 @@ In the roadmap are following features (but not yet planned)
 * Asset management, slicing assets according to receipt etc.
 * More to come, open for suggestions...
 
-Installation
-------------
+# Installation
 
 Install `IosBox` gem if you haven't done yet so
 
 	$ gem install ios-box
 
-Create in the root of your project folder `Rakefile` -file with following contents:
-	
-	require 'ios-box'
-
-	IosBox::Tasks.new do |config|
-	  config.target = "iosboxdev"
-	end
-
 Integrate toolbox with your XCode project by executing following command:
 	
-	$ rake iosbox:integrate
+	$ ios-box integrate
 
 Notice! This command will modify your XCode project file and therefore can make your project to stop working.
 Make sure you have proper backups done.
 
-If you want to integrate IosBox manually, add following script as build phase, preferably as first phase.
+# Usage
 
-	(cd $PROJECT_DIR; rake iosbox:build:prepare)
+Run `ios-box help` in project folder to see available commands.
 
-Usage
------
+# Commands
 
-Run `rake -T` in project folder to see available commands.
+## ios-box integrate
 
-Copyright
----------
+Integrates ios-box to current project. During integration process you can
+choose which targets build preparation task is ran.
+
+## ios-box build prepare
+
+This task prepares build process and can be only ran during XCode build phase.
+
+## ios-box version show
+
+Displays current version information of the project.
+
+## ios-box version build
+
+Increments build number.
+
+## ios-box version bump [major|minor]
+
+Bumps marketing version by one step. By default it increases patch level
+but if ptional argument is given, either major or minor version is increased.
+
+# Copyright
 
 Copyright &copy; 2011 Mikko Kokkonen. See LICENSE.txt for
 further details.

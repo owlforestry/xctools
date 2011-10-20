@@ -1,22 +1,33 @@
+require 'yaml'
+
 module Ios
   module Box
     class Config
-      attr_accessor :project
-      attr_reader :targets
-
-      def self.load(file = ".iosbox")
-        config = self.new
-        config.instance_eval(File.read(file), file)
-        config
+      def initialize(file = nil)
+        @data = {}
+        @file = file
+        
+        if !file.nil? and File.exists?(file)
+          @data = YAML.load(File.read(file))
+        end
       end
       
-      def initialize
-        @targets = []
-        @project = nil
+      def save(file = nil)
+        File.open(file || @file, 'w') {|io| io.puts @data.to_yaml }
       end
       
-      def config
-        self
+      def to_a
+        @data.to_a
+      end
+      
+      def method_missing(method, *args, &block)
+        if method[-1] == "="
+          if args.length == 1
+            @data[method[0..-2]] = args[0]
+          end
+        else
+          @data[method]
+        end
       end
     end
   end
