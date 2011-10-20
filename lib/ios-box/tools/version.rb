@@ -1,9 +1,10 @@
 module Ios
   module Box
     module Tools
-      class Version < Tool
+      class Version < Thor
+        desc "show", "Displays current version information"
         def show
-          version = @iosbox.get_version
+          version = IOSBox.new.version
           
           puts "  Short Version: #{version[:short]}"
           puts " Bundle Version: #{version[:bundle]}"
@@ -12,8 +13,19 @@ module Ios
           puts "         Commit: #{version[:commit]}"
         end
         
-        def bump(build = nil)
-          @iosbox.version.bump(build)
+        desc "build [BUILDNUM]", "Increments current build number or sets it to defined."
+        def build(buildnum = nil)
+          IOSBox.new.version.bump_build(buildnum)
+        end
+        
+        desc "set VERSION", "Sets new marketing version"
+        def set(ver)
+          IOSBox.new.version.set_marketing(ver)
+        end
+        
+        desc "bump [major|minor]", "Bumps marketings version by one"
+        def bump(type = :patch)
+          IOSBox.new.version.bump_marketing(type.downcase.to_sym)
         end
       end
     end
