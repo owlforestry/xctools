@@ -85,6 +85,8 @@ module IOSBox
       config = Config.new
       config.project = project
       config.targets = targets.collect{|c| c.name.value}
+      config.growl = true # Enable Growl support
+      config.deploy = {'autonotes' => true} # Generate deployment changelogs from GIT logs
       config.save(".iosbox")
 
       # Append buildcache to gitignore
