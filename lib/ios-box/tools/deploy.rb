@@ -1,23 +1,41 @@
 require 'ios-box/deploy'
+require 'pbxproject'
 
 module IOSBox
   module Tools
     class Deploy < Thor
+      desc "add PROVIDER", "Adds deployment to the project"
+      def add(provider)
+        iosbox = IOSBox.new
+        pbx = PBXProject::PBXProject.new :file => File.join(iosbox.project_dir, iosbox.config.project, "project.pbxproj")
+        pbx.parse
+        
+        # Find all configuration lists and check if we have already Ad Hoc configuration
+        cfglists = pbx.find_item :type => PBXProject::PBXTypes::XCConfigurationList
+        cfglists.each do |cfg|
+          if cfg.buildConfigurations.select {|bc| bc.comment == "Ad Hoc"}.empty?
+            puts "Copy Release => Ad Hoc"
+            release = cfg.buildConfigurations.select {|bc| bc.comment == "Release"}.first.value
+            bc = pbx.find_item :guid => release, :type => PBXProject::PBXTypes::XCBuildConfiguration
+            adhoc = PBXProject::PBXTypes::XCBuildConfiguration.new
+            adhoc.comment = "Ad Hoc"
+            adhoc.name = PBXProject::PBXTypes::BasicValue.new(:value => '"Ad Hoc"')
+            adhoc.buildSettings = bc.buildSettings
+            pbx.add_item adhoc
+            
+            cfg.buildConfigurations << PBXProject::PBXTypes::BasicValue.new(:value => adhoc.guid, :comment => "Ad Hoc")
+            cfg.defaultConfigurationName = "Release"
+          end
+        end
+        
+        pbx.write_to :file => File.join(iosbox.project_dir, iosbox.config.project, "project.pbxproj")
+      end
+      
       desc "testflight", "Deploys latest built archive to TestFlight"
-      method_option :notes,
-        :type    => :string,
-        :desc    => "Supply build notes. If a file, notes are read from given file."
-      method_option :distribution,
-        :type    => :array,
-        :desc    => "Distribution list to deploy"
-      method_option :notify,
-        :type    => :boolean,
-        :default => true,
-        :desc    => "Notify testers of new build"
-      method_option :replace,
-        :type    => :boolean,
-        :default => true,
-        :desc    => "Replace existing build"
+      method_option :notes, :type => :string, :desc => "Supply build notes. If a file, notes are read from given file."
+      method_option :distribution, :type => :array, :desc => "Distribution list to deploy"
+      method_option :notify, :type => :boolean, :default => true, :desc => "Notify testers of new build"
+      method_option :replace, :type => :boolean, :default => true, :desc => "Replace existing build"
       def testflight
         iosbox = IOSBox.new
 
