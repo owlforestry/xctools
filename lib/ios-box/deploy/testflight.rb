@@ -16,33 +16,16 @@ module IOSBox
           :notify             => opts[:notify],
           :replace            => opts[:replace]
 
-        if opts[:growl]
-          begin
-            require 'ruby_gntp'
-            
-            growl = GNTP.new("ios-box")
-            growl.register({:notifications => [
-                              {:name => "Build Deployed", :enabled => true},
-                              {:name => "Build Failed", :enabled => true}
-            ]})
-          rescue LoadError
-            opts[:growl] = false
-            puts "Please install ruby_gntp gem if you want to enable Growl notifications."
-          end
-        end
         if response.code == 200
           pl = Plist::parse_xml(response.to_str)
 
           puts "Build Deployed."
           puts "See it at: #{pl['config_url']}"
 
-          if opts[:growl]
-            growl.notify(
-              :name    => "Build Deployed",
-              :title => "Build Deployed",
-              :text  => "Build Deployed to Testflight.\nSee build at #{pl['config_url']}",
-            )
-          end
+          notify(
+            :name  => "Build Deployed",
+            :title => "Build Deployed",
+          :text  => "Build Deployed to Testflight.\nSee build at #{pl['config_url']}")
         end
 
         puts "Complete build at #{pl['config_url']}"

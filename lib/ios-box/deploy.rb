@@ -6,6 +6,37 @@ module IOSBox
     autoload :Testflight, 'ios-box/deploy/testflight'
     
     class Deployer
+      attr_reader :iosbox
+      
+      def initialize(iosbox)
+        @iosbox = iosbox
+
+        if iosbox.config.growl
+          begin
+            require 'ruby_gntp'
+            
+            @growl = GNTP.new("ios-box")
+            @growl.register({:notifications => [
+                              {:name => "Deployment Succeeded", :enabled => true},
+                              {:name => "Deployment Failed", :enabled => true},
+            ]})
+          rescue LoadError
+            iosbox.config.growl = false
+            puts "Please install ruby_gntp gem if you want to enable Growl notifications."
+          end
+        end
+      end
+      
+      def notify(opts)
+        return unless iosbox.config.growl
+        
+        @growl.notify(
+          :name => opts[:name],
+          :title => opts[:title],
+          :text => opts[:text] || opts[:error]
+        )
+      end
+      
       def create_ipa(path)
         puts "Creating IPA from path #{path}..."
         
