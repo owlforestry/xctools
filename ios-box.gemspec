@@ -20,4 +20,5 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency  "plist"
   gem.add_runtime_dependency  "rubyzip"
   gem.add_runtime_dependency  "rest-client"
+  gem.add_runtime_dependency  "nokogiri"
 end
