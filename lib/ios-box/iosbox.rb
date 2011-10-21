@@ -53,9 +53,16 @@ module IOSBox
     end
 
     def git
-      @git ||= Grit::Repo.new(project_dir)
+      @git ||= Grit::Repo.new(git_dir)
     end
-
+    
+    def git_dir
+      if File.exists?(File.join(project_dir, ".git"))
+        project_dir
+      else
+        %x{git rev-parse --show-toplevel}.strip
+      end
+    end
 
     class Version
       attr_reader :iosbox
