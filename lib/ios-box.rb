@@ -1,7 +1,3 @@
-require "ios-box/version"
-
-module Ios
-  module Box
-    # Your code goes here...
-  end
+module IOSBox
+  VERSION = "0.2.2"
 end

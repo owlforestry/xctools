@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/ios-box/version', __FILE__)
+require File.expand_path('../lib/ios-box', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Mikko Kokkonen"]
@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   gem.name          = "ios-box"
   gem.require_paths = ["lib"]
-  gem.version       = Ios::Box::VERSION
+  gem.version       = IOSBox::VERSION
   
   gem.add_runtime_dependency  "thor"
   gem.add_runtime_dependency  "grit"
