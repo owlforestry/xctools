@@ -1,34 +1,37 @@
 require 'yaml'
+require 'ostruct'
 
-module Ios
-  module Box
-    class Config
-      def initialize(file = nil)
-        @data = {}
-        @file = file
-        
-        if !file.nil? and File.exists?(file)
-          @data = YAML.load(File.read(file))
-        end
+module IOSBox
+  class Config < OpenStruct
+    attr_accessor :file
+
+    def self.load(file)
+      if File.exists?(file)
+        config = self.new(YAML.load(File.read(file)))
+      else
+        config = self.new
       end
-      
-      def save(file = nil)
-        File.open(file || @file, 'w') {|io| io.puts @data.to_yaml }
-      end
-      
-      def to_a
-        @data.to_a
-      end
-      
-      def method_missing(method, *args, &block)
-        if method[-1] == "="
-          if args.length == 1
-            @data[method[0..-2]] = args[0]
-          end
+
+      config.file = file
+      config
+    end
+
+    def save(file = nil)
+      puts "Saving config to #{file || @file}"
+      File.open(file || @file, 'w') {|io| io.puts @table.to_yaml }
+    end
+
+    def to_a
+      res = []
+      @table.collect do |k,v|
+        if v.kind_of?(Hash)
+          res << ["#{k.to_s}:", ""]
+          v.each {|k,v| res << ["  #{k.to_s}", v]}
         else
-          @data[method]
+          res << [k.to_s, v]
         end
       end
+      res
     end
   end
 end

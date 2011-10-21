@@ -18,4 +18,6 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency  "thor"
   gem.add_runtime_dependency  "grit"
   gem.add_runtime_dependency  "plist"
+  gem.add_runtime_dependency  "rubyzip"
+  gem.add_runtime_dependency  "rest-client"
 end

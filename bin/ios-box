@@ -4,4 +4,4 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 
 require 'ios-box/cli'
 
-Ios::Box::CLI.start
+IOSBox::CLI.start

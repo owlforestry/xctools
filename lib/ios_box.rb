@@ -7,7 +7,7 @@ require 'plist'
 
 require 'build_cache'
 
-module IosBox
+module IOSBox
   class Tasks < ::Rake::TaskLib
     def initialize(namespace = :iosbox, &block)
       @config = Config.new(
